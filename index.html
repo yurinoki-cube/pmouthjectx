@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+function rotateAroundAxis(cube, axis, angle) {
+            const quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle);
+            cube.position.applyQuaternion(quaternion);
+            cube.quaternion.multiplyQuaternions(quaternion, cube.quaternion);
+        }<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>プ口ジェクトＸ</title>
+    <title>3D ルービックキューブ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
@@ -992,8 +996,7 @@
         
         function resetToScrambled() {
             if (!scrambledState) {
-                alert('まず「崩す」ボタンを押してゲームを開始してください。');
-                return;
+                return; // メッセージを表示せずに何もしない
             }
             
             // 5手崩した状態に戻す
@@ -1126,8 +1129,8 @@
             const isSolved = isInSolvedState();
             if (isSolved) {
                 isGameMode = false;
-                alert(`おめでとうございます！${moveCount}手でX-crossが完成しました！`);
                 updateGameInfo();
+                // 完成メッセージを削除
             }
         }
         
