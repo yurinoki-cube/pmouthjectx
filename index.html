@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D ルービックキューブ</title>
+    <title>プ口ジェクトＸ</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -109,6 +110,121 @@
             background: #5a67d8;
         }
         
+        #input-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #input-modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 90vw;
+            width: 400px;
+            max-height: 80vh;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            color: #333;
+            box-sizing: border-box;
+        }
+        
+        #input-modal-content h2 {
+            margin-top: 0;
+            color: #4a5568;
+            text-align: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        
+        #move-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            box-sizing: border-box;
+            resize: none;
+            background-color: #f8f9fa;
+            cursor: default;
+        }
+        
+        #move-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .input-button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .go-button {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .go-button:hover {
+            background: #38a169;
+        }
+        
+        .cancel-button {
+            background: #e53e3e;
+            color: white;
+        }
+        
+        .cancel-button:hover {
+            background: #c53030;
+        }
+        
+        .notation-buttons {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .notation-button {
+            padding: 8px 4px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            background: #f7fafc;
+            color: #2d3748;
+            cursor: pointer;
+            font-size: 14px;
+            font-family: monospace;
+            transition: all 0.2s ease;
+        }
+        
+        .notation-button:hover {
+            background: #e2e8f0;
+            border-color: #a0aec0;
+        }
+        
+        .notation-button:active {
+            background: #cbd5e0;
+        }
+        
         #controls {
             position: fixed;
             bottom: 20px;
@@ -129,6 +245,11 @@
             font-size: 14px;
             transition: all 0.3s ease;
             backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            min-height: 50px;
         }
         
         button:hover {
@@ -146,12 +267,36 @@
         <div id="info" onclick="showControls()">
             <h3>プロジェクトX</h3>
         </div>
-        <div style="position: absolute; top: 70px; left: 20px; z-index: 100;">
-            <button onclick="scrambleFromSolved(5)" style="padding: 12px 20px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">5手崩す</button>
+        <div id="reset-controls" style="position: absolute; top: 70px; left: 20px; z-index: 100; background: rgba(0, 0, 0, 0.3); padding: 10px; border-radius: 10px; backdrop-filter: blur(10px);">
+            <div style="color: white; font-size: 14px; margin-bottom: 8px; text-align: left;">リセット</div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="resetToScrambled()" title="スクランブルリセット">
+                    <img src="https://img.icons8.com/?size=20&id=37981&format=png&color=ffffff" alt="reset" style="width: 20px; height: 20px;">
+                </button>
+                <button onclick="resetCamera()" title="カメラリセット"><i class="bi bi-camera-fill"></i></button>
+            </div>
         </div>
         <div id="controls">
-            <button onclick="resetToScrambled()">スクランブル<br>リセット</button>
-            <button onclick="resetCamera()">カメラ<br>リセット</button>
+            <select id="scramble-length" style="padding: 12px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); margin-right: 10px;">
+                <option value="1" style="background: #333; color: white;">1手</option>
+                <option value="2" style="background: #333; color: white;">2手</option>
+                <option value="3" style="background: #333; color: white;">3手</option>
+                <option value="4" style="background: #333; color: white;">4手</option>
+                <option value="5" style="background: #333; color: white;" selected>5手</option>
+                <option value="6" style="background: #333; color: white;">6手</option>
+                <option value="7" style="background: #333; color: white;">7手</option>
+                <option value="8" style="background: #333; color: white;">8手</option>
+                <option value="9" style="background: #333; color: white;">9手</option>
+                <option value="10" style="background: #333; color: white;">10手</option>
+                <option value="11" style="background: #333; color: white;">11手</option>
+                <option value="12" style="background: #333; color: white;">12手</option>
+            </select>
+            <select id="scramble-type" style="padding: 12px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; font-size: 14px; backdrop-filter: blur(10px); margin-right: 10px;">
+                <option value="exact" style="background: #333; color: white;" selected>固定</option>
+                <option value="within" style="background: #333; color: white;">以内</option>
+            </select>
+            <button onclick="scrambleWithSelectedLength()" style="padding: 12px 20px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">崩す</button>
+            <button onclick="solveCube()" style="padding: 12px 20px; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.3s ease; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(255, 255, 255, 0.3)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'; this.style.transform='translateY(0)'">揃える</button>
         </div>
         <div id="game-info" style="position: absolute; top: 20px; right: 20px; color: white; background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 10px; backdrop-filter: blur(10px);">
             <div id="move-counter">手数: 0</div>
@@ -182,10 +327,19 @@
                 
                 <h3>🎮 ゲームの流れ</h3>
                 <ul>
-                    <li><strong>「5手崩す」</strong>：X-cross完成状態から5手でランダムに崩す</li>
+                    <li><strong>手数とタイプを選択</strong>：1-12手、固定/以内を選択</li>
+                    <li><strong>「崩す」</strong>：X-cross完成状態から指定条件でスクランブル</li>
                     <li><strong>キーボード操作</strong>：X-cross完成状態に戻す</li>
-                    <li><strong>「スクランブルリセット」</strong>：崩した状態に戻す</li>
-                    <li><strong>「カメラリセット」</strong>：見た目を初期状態に戻す</li>
+                    <li><strong>「揃える」</strong>：回転記号をボタンで入力して実行</li>
+                    <li><strong>リセット機能</strong>：🔗でスクランブル状態に戻す、📷でカメラ位置リセット</li>
+                </ul>
+                
+                <h3>🔧 その他の機能</h3>
+                <ul>
+                    <li><strong>回転記号入力</strong>：「揃える」ボタンで入力画面を開く</li>
+                    <li><strong>入力方法</strong>：ボタンクリックのみ（キーボード入力無効）</li>
+                    <li><strong>対応記号</strong>：R, L, U, D, F, B（', 2付き）、Uw, Uw', y, y'</li>
+                    <li><strong>編集機能</strong>：←で取消、クリアで全削除</li>
                 </ul>
                 
                 <h3>📱 タッチ操作</h3>
@@ -195,6 +349,47 @@
                 </ul>
                 
                 <button class="close-button" onclick="hideControls()">閉じる</button>
+            </div>
+        </div>
+        
+        <!-- 回転入力ポップアップ -->
+        <div id="input-modal-overlay" onclick="hideInputModal()">
+            <div id="input-modal-content" onclick="event.stopPropagation()">
+                <textarea id="move-input" placeholder="回転記号ボタンで入力してください" rows="4" readonly></textarea>
+                
+                <div class="notation-buttons">
+                    <button class="notation-button" onclick="addNotation('R')">R</button>
+                    <button class="notation-button" onclick="addNotation('R\'')">R'</button>
+                    <button class="notation-button" onclick="addNotation('R2')">R2</button>
+                    <button class="notation-button" onclick="addNotation('L')">L</button>
+                    <button class="notation-button" onclick="addNotation('L\'')">L'</button>
+                    <button class="notation-button" onclick="addNotation('L2')">L2</button>
+                    
+                    <button class="notation-button" onclick="addNotation('U')">U</button>
+                    <button class="notation-button" onclick="addNotation('U\'')">U'</button>
+                    <button class="notation-button" onclick="addNotation('U2')">U2</button>
+                    <button class="notation-button" onclick="addNotation('D')">D</button>
+                    <button class="notation-button" onclick="addNotation('D\'')">D'</button>
+                    <button class="notation-button" onclick="addNotation('D2')">D2</button>
+                    
+                    <button class="notation-button" onclick="addNotation('F')">F</button>
+                    <button class="notation-button" onclick="addNotation('F\'')">F'</button>
+                    <button class="notation-button" onclick="addNotation('F2')">F2</button>
+                    <button class="notation-button" onclick="addNotation('B')">B</button>
+                    <button class="notation-button" onclick="addNotation('B\'')">B'</button>
+                    <button class="notation-button" onclick="addNotation('B2')">B2</button>
+                    
+                    <button class="notation-button" onclick="addNotation('Uw')">Uw</button>
+                    <button class="notation-button" onclick="addNotation('Uw\'')">Uw'</button>
+                    <button class="notation-button" onclick="addNotation('y')">y</button>
+                    <button class="notation-button" onclick="addNotation('y\'')">y'</button>
+                    <button class="notation-button" onclick="undoLastMove()">←</button>
+                    <button class="notation-button" onclick="clearInput()">クリア</button>
+                </div>
+                
+                <div class="input-buttons">
+                    <button class="input-button go-button" onclick="executeInputMoves()">Go!</button>
+                </div>
             </div>
         </div>
     </div>
@@ -499,6 +694,100 @@
             });
         }
 
+        function solveCube() {
+            showInputModal();
+        }
+        
+        function showInputModal() {
+            document.getElementById('input-modal-overlay').style.display = 'flex';
+            document.getElementById('move-input').focus();
+        }
+        
+        function hideInputModal() {
+            document.getElementById('input-modal-overlay').style.display = 'none';
+            document.getElementById('move-input').value = '';
+        }
+        
+        function addNotation(notation) {
+            const input = document.getElementById('move-input');
+            if (input.value && !input.value.endsWith(' ')) {
+                input.value += ' ';
+            }
+            input.value += notation;
+        }
+        
+        function clearInput() {
+            document.getElementById('move-input').value = '';
+        }
+        
+        function undoLastMove() {
+            const input = document.getElementById('move-input');
+            const moves = input.value.trim().split(/\s+/);
+            if (moves.length > 0 && moves[0] !== '') {
+                moves.pop();
+                input.value = moves.join(' ');
+                if (input.value.length > 0) {
+                    input.value += ' ';
+                }
+            }
+        }
+
+        function executeInputMoves() {
+            const input = document.getElementById('move-input').value.trim();
+            if (!input) {
+                alert('回転記号を入力してください。');
+                return;
+            }
+            
+            // 入力された手順を解析
+            const moves = input.split(/\s+/).filter(move => move.length > 0);
+            
+            // 有効な手順かチェック
+            const validMoves = ['R', 'R\'', 'R2', 'L', 'L\'', 'L2', 'U', 'U\'', 'U2', 'Uw', 'Uw\'', 'D', 'D\'', 'D2', 'F', 'F\'', 'F2', 'B', 'B\'', 'B2', 'y', 'y\''];
+            const invalidMoves = moves.filter(move => !validMoves.includes(move));
+            
+            if (invalidMoves.length > 0) {
+                alert(`無効な回転記号が含まれています: ${invalidMoves.join(', ')}`);
+                return;
+            }
+            
+            hideInputModal();
+            
+            // 入力された手順を実行用に変換（R, U, F, Uwの回転を逆に変換）
+            const convertedMoves = moves.map(move => {
+                if (move.includes('2')) {
+                    return move; // 180度回転はそのまま
+                }
+                const base = move.replace('\'', '').replace('w', '');
+                if (base === 'R' || base === 'U' || base === 'F') {
+                    return move.includes('\'') ? move.replace('\'', '') : move + '\'';
+                }
+                return move;
+            });
+            
+            // 手順を順次実行
+            convertedMoves.forEach((move, index) => {
+                setTimeout(() => {
+                    if (move === 'y' || move === 'y\'') {
+                        executeYRotation(move);
+                    } else {
+                        executeMove(move);
+                        if (isGameMode) {
+                            moveCount++;
+                            updateGameInfo();
+                        }
+                    }
+                    
+                    // 最後の手順の後に完成チェック
+                    if (index === convertedMoves.length - 1 && isGameMode) {
+                        setTimeout(() => {
+                            checkSolved();
+                        }, 100);
+                    }
+                }, index * 300); // 300ms間隔で実行
+            });
+        }
+
         function showControls() {
             document.getElementById('modal-overlay').style.display = 'flex';
         }
@@ -552,6 +841,24 @@
 
         let scrambledState = null; // 5手崩した状態を保存
 
+        function scrambleWithSelectedLength() {
+            const lengthSelect = document.getElementById('scramble-length');
+            const typeSelect = document.getElementById('scramble-type');
+            const maxMoves = parseInt(lengthSelect.value);
+            const isExact = typeSelect.value === 'exact';
+            
+            let numMoves;
+            if (isExact) {
+                // ちょうどn手
+                numMoves = maxMoves;
+            } else {
+                // n手以内（1手からn手のランダム）
+                numMoves = Math.floor(Math.random() * maxMoves) + 1;
+            }
+            
+            scrambleFromSolved(numMoves);
+        }
+
         function scrambleFromSolved(numMoves) {
             resetCube();
             scrambleSequence = [];
@@ -562,7 +869,18 @@
                 let randomMove;
                 do {
                     randomMove = moves[Math.floor(Math.random() * moves.length)];
-                } while (scrambleSequence.length > 0 && isOppositeMove(randomMove, scrambleSequence[scrambleSequence.length - 1]));
+                    
+                    // 最初の手順でU系を避ける
+                    if (i === 0) {
+                        const base = randomMove.replace('\'', '').replace('2', '').replace('w', '');
+                        if (base === 'U') {
+                            continue; // U、U'、U2を避ける
+                        }
+                    }
+                    
+                } while (scrambleSequence.length > 0 && 
+                        (isSameAxis(randomMove, scrambleSequence[scrambleSequence.length - 1]) ||
+                         (scrambleSequence.length >= 2 && isOppositeAxisPattern(randomMove, scrambleSequence))));
                 
                 scrambleSequence.push(randomMove);
                 // 解法は逆順で逆の手順
@@ -609,13 +927,72 @@
             });
             
             document.getElementById('scramble-info').innerHTML = 
-                `スクランブル: ${displayScramble.join(' ')}<br>` +
+                `scramble: ${displayScramble.join(' ')}<br>` +
                 `解法: ${displaySolution.join(' ')}`;
+        }
+        
+        function isOppositeAxisPattern(currentMove, sequence) {
+            // R L R や U D U のような対面軸パターンを検出
+            if (sequence.length < 2) return false;
+            
+            const current = currentMove.replace('\'', '').replace('2', '').replace('w', '');
+            const prev1 = sequence[sequence.length - 1].replace('\'', '').replace('2', '').replace('w', '');
+            const prev2 = sequence[sequence.length - 2].replace('\'', '').replace('2', '').replace('w', '');
+            
+            // 対面軸のペアを定義
+            const oppositePairs = [
+                ['R', 'L'],
+                ['U', 'D'],
+                ['F', 'B']
+            ];
+            
+            // 現在の手順が2手前と同じで、1手前が対面軸かチェック
+            if (current === prev2) {
+                for (const pair of oppositePairs) {
+                    if ((pair[0] === current && pair[1] === prev1) ||
+                        (pair[1] === current && pair[0] === prev1)) {
+                        return true; // R L R パターンを検出
+                    }
+                }
+            }
+            
+            return false;
+        }
+
+        function isSameAxis(move1, move2) {
+            // 同じ軸の回転かどうかを判定
+            const base1 = move1.replace('\'', '').replace('2', '').replace('w', '');
+            const base2 = move2.replace('\'', '').replace('2', '').replace('w', '');
+            
+            // 基本的に同じ軸の場合
+            if (base1 === base2) {
+                return true;
+            }
+            
+            // Uw系とU/D系の特別判定
+            const isUw1 = move1.includes('Uw');
+            const isUw2 = move2.includes('Uw');
+            const isU1 = base1 === 'U';
+            const isU2 = base2 === 'U';
+            const isD1 = base1 === 'D';
+            const isD2 = base2 === 'D';
+            
+            // Uw系とU系は同じ軸として扱う
+            if ((isUw1 && isU2) || (isU1 && isUw2)) {
+                return true;
+            }
+            
+            // Uw系とD系は連続しないようにする
+            if ((isUw1 && isD2) || (isD1 && isUw2)) {
+                return true;
+            }
+            
+            return false;
         }
         
         function resetToScrambled() {
             if (!scrambledState) {
-                alert('まず「5手崩す」ボタンを押してゲームを開始してください。');
+                alert('まず「崩す」ボタンを押してゲームを開始してください。');
                 return;
             }
             
@@ -664,13 +1041,19 @@
             const rotationAxis = getRotationAxis(move);
             let direction = 1;
             
+            // R, U, F, Uwの回転方向を修正
+            const base = move.replace('\'', '').replace('2', '').replace('w', '');
+            if (base === 'R' || base === 'U' || base === 'F') {
+                direction = 1; // 正方向に変更
+            }
+            
             // 逆回転の場合
             if (move.includes('\'')) {
-                direction = -1;
+                direction = -direction;
             }
             // 180度回転の場合は方向は関係ない
             else if (move.includes('2')) {
-                direction = 1;
+                direction = Math.abs(direction);
             }
             
             // 該当する面のキューブを選択して回転
