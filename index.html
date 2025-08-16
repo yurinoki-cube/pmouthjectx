@@ -443,15 +443,20 @@
             document.getElementById('container').appendChild(renderer.domElement);
 
             // ライティング
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            const ambientLight = new THREE.AmbientLight(0x404040, 1.0); // アンビエントライトを強化
             scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6); // ディレクショナルライトを弱化
             directionalLight.position.set(10, 10, 5);
             directionalLight.castShadow = true;
             directionalLight.shadow.mapSize.width = 2048;
             directionalLight.shadow.mapSize.height = 2048;
             scene.add(directionalLight);
+            
+            // 追加の補助ライト（影を軽減）
+            const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+            fillLight.position.set(-10, -10, -5); // 反対方向から照射
+            scene.add(fillLight);
 
             // ルービックキューブ作成
             createRubiksCube();
@@ -870,17 +875,21 @@
                 do {
                     randomMove = moves[Math.floor(Math.random() * moves.length)];
                     
+                } while (
                     // 最初の手順でU系を避ける
-                    if (i === 0) {
-                        const base = randomMove.replace('\'', '').replace('2', '').replace('w', '');
-                        if (base === 'U') {
-                            continue; // U、U'、U2を避ける
-                        }
-                    }
+                    (i === 0 && randomMove.replace('\'', '').replace('2', '').replace('w', '') === 'U') ||
                     
-                } while (scrambleSequence.length > 0 && 
-                        (isSameAxis(randomMove, scrambleSequence[scrambleSequence.length - 1]) ||
-                         (scrambleSequence.length >= 2 && isOppositeAxisPattern(randomMove, scrambleSequence))));
+                    // 2手目で特別な条件をチェック（1手目がD系の場合、2手目はU系を避ける）
+                    (i === 1 && scrambleSequence.length > 0 && 
+                     scrambleSequence[0].replace('\'', '').replace('2', '').replace('w', '') === 'D' &&
+                     randomMove.replace('\'', '').replace('2', '').replace('w', '') === 'U') ||
+                    
+                    // 連続同軸回避
+                    (scrambleSequence.length > 0 && isSameAxis(randomMove, scrambleSequence[scrambleSequence.length - 1])) ||
+                    
+                    // 対面軸パターン回避
+                    (scrambleSequence.length >= 2 && isOppositeAxisPattern(randomMove, scrambleSequence))
+                );
                 
                 scrambleSequence.push(randomMove);
                 // 解法は逆順で逆の手順
